@@ -1,0 +1,144 @@
+/*/
+ * Copyright (c) 2019 LAAS/CNRS
+ * All rights reserved.
+ *
+ * Redistribution  and  use  in  source  and binary  forms,  with  or  without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *   1. Redistributions of  source  code must retain the  above copyright
+ *      notice and this list of conditions.
+ *   2. Redistributions in binary form must reproduce the above copyright
+ *      notice and  this list of  conditions in the  documentation and/or
+ *      other materials provided with the distribution.
+ *
+ * THE SOFTWARE  IS PROVIDED "AS IS"  AND THE AUTHOR  DISCLAIMS ALL WARRANTIES
+ * WITH  REGARD   TO  THIS  SOFTWARE  INCLUDING  ALL   IMPLIED  WARRANTIES  OF
+ * MERCHANTABILITY AND  FITNESS.  IN NO EVENT  SHALL THE AUTHOR  BE LIABLE FOR
+ * ANY  SPECIAL, DIRECT,  INDIRECT, OR  CONSEQUENTIAL DAMAGES  OR  ANY DAMAGES
+ * WHATSOEVER  RESULTING FROM  LOSS OF  USE, DATA  OR PROFITS,  WHETHER  IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR  OTHER TORTIOUS ACTION, ARISING OUT OF OR
+ * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ *                                              Martin Jacquet - February 2020
+ */
+/* ---- Includes ---------------------------------------------------------- */
+
+#pragma require "openrobots2-idl >= 2.0"
+#pragma require "mbzirc-idl"
+
+#include "sensor/t265.idl"
+#include "or/pose/pose_estimator.gen"
+
+/* ---- Component declaration --------------------------------------------- */
+
+component t265 {
+    version	    "0.1";
+    email		"martin.jacquet@laas.fr";
+    lang		"c";
+    require	    "genom3 >= 2.99.26";
+    codels-require	"realsense2", "opencv";
+
+    /* ---- Exceptions ---------------------------------------------------- */
+
+    exception e_rs { string<128> what; };
+    exception e_hw { string<128> what; };
+    exception e_mem { string<128> what; };
+
+    /* ---- IDS ----------------------------------------------------------- */
+
+    ids {
+        t265::pipe_s        pipe;
+        t265::RSdata_s      data;
+
+        boolean             started;
+        t265::frame_s       bw;
+
+        or_pose_estimator::state state;
+    };
+
+    /* ---- Ports --------------------------------------------------------- */
+
+    port            out t265::frame_s       bw_out;
+    port            out t265::intrinsics_s  intrinsics;
+    port            out t265::extrinsics_s  extrinsics;
+
+    /* ---- Tasks --------------------------------------------------------- */
+
+    const unsigned short bw_pub_period_ms = 34;
+
+    task hw_comm {
+        codel<start> t265_comm_start(out ::ids, out extrinsics)
+            yield poll;
+
+        async codel<poll> t265_comm_poll(inout pipe)
+            yield pause::poll, read;
+
+        codel<read> t265_comm_read(in pipe, out data, out started)
+            yield poll;
+    };
+
+    task bw_publish {
+        period bw_pub_period_ms ms;
+        throws e_hw;
+
+        codel<start> t265_bw_start(in started)
+            yield pause::start, pub;
+
+        codel<pub> t265_bw_pub(in data, inout bw, out bw_out)
+            yield visu;
+
+        codel<visu> t265_bw_visu(in bw)
+            yield pause::pub;
+    };
+
+
+    /* ---- Hardware connection ------------------------------------------- */
+
+    activity connect() {
+        task hw_comm;
+        throw e_hw;
+
+        codel<start> t265_connect(out ::ids, out intrinsics)
+            yield ether;
+    };
+
+    /* ---- Display/Record ------------------------------------------------ */
+
+    activity display() {
+        task bw_publish;
+
+        codel<start> t265_disp_start()
+            yield ether;
+    };
+
+    activity stop_display() {
+        task bw_publish;
+
+        codel<start> t265_disp_stop()
+            yield ether;
+    };
+
+    activity record(in string<64> path = "/tmp/": "Video files path") {
+        task bw_publish;
+
+        codel<start> t265_rec_start(in path, in bw)
+            yield ether;
+    };
+
+    activity stop_record() {
+        task bw_publish;
+
+        codel<start> t265_rec_stop()
+            yield ether;
+    };
+
+    /* ---- Calibration --------------------------------------------------- */
+
+    activity set_extrinsics(in sequence<double,6> ext_values) {
+        task hw_comm;
+
+        codel<start> t265_set_extrinsics(in ext_values, out extrinsics)
+            yield ether;
+    };
+
+};
