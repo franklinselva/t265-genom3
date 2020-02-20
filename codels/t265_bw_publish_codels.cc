@@ -22,7 +22,6 @@
  *                                              Martin Jacquet - February 2020
  *
  */
-
 #include "act265.h"
 
 #include "t265_c_types.h"
