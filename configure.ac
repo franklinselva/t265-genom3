@@ -39,10 +39,20 @@ AC_PROG_CC
 AC_PROG_CXX
 
 
+dnl Require GNU make
+AC_CACHE_CHECK([for GNU make], [ac_cv_path_MAKE],
+  [AC_PATH_PROGS_FEATURE_CHECK([MAKE], [make gmake],
+    [case `$ac_path_MAKE --version 2>/dev/null` in
+       *GNU*) ac_cv_path_MAKE=$ac_path_MAKE; ac_path_MAKE_found=:;;
+     esac],
+    [AC_MSG_ERROR([could not find GNU make])])])
+AC_SUBST([MAKE], [$ac_cv_path_MAKE])
+
+
 dnl External packages
 PKG_CHECK_MODULES(requires, [
   openrobots2-idl >= 2.0
-  mbzirc-idl
+  vision-idl
   genom3 >= 2.99.26
 ])
 PKG_CHECK_MODULES(codels_requires, [

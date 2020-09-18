@@ -7,6 +7,6 @@ includedir=${prefix}/codels
 Name: t265-genom3
 Description: t265 interface and codels library
 Version: @PACKAGE_VERSION@
-Requires: openrobots2-idl >= 2.0, mbzirc-idl, genom3 >= 2.99.26
+Requires: openrobots2-idl >= 2.0, vision-idl, genom3 >= 2.99.26
 Libs: ${libdir}/libt265_codels.la
 Libs.private: @codels_requires_LIBS@

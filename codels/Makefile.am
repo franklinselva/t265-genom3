@@ -24,16 +24,15 @@
 #
 lib_LTLIBRARIES = libt265_codels.la
 
-libt265_codels_la_SOURCES=	t265_c_types.h
-libt265_codels_la_SOURCES+=	t265_codels.cc
-libt265_codels_la_SOURCES+=	t265_hw_comm_codels.cc
-libt265_codels_la_SOURCES+=	t265_bw_publish_codels.cc
+libt265_codels_la_SOURCES  =	t265_c_types.h
+libt265_codels_la_SOURCES +=	t265_codels.cc
+libt265_codels_la_SOURCES +=	t265_main_codels.cc
 
-libt265_codels_la_CPPFLAGS=	$(requires_CFLAGS)
-libt265_codels_la_LDFLAGS=	$(requires_LIBS)
+libt265_codels_la_CPPFLAGS =	$(requires_CFLAGS)
+libt265_codels_la_LIBADD   =	$(requires_LIBS)
 libt265_codels_la_CPPFLAGS+=	$(codels_requires_CFLAGS)
-libt265_codels_la_LDFLAGS+=	$(codels_requires_LIBS)
-libt265_codels_la_LDFLAGS+=	-release $(PACKAGE_VERSION)
+libt265_codels_la_LIBADD  +=	$(codels_requires_LIBS)
+libt265_codels_la_LDFLAGS  =	-release $(PACKAGE_VERSION)
 
 
 # idl  mappings

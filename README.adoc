@@ -47,15 +47,15 @@ endif::[]
 == Ports
 
 
-[[bw_out]]
-=== bw_out (out)
+[[frame]]
+=== frame (out)
 
 
 [role="small", width="50%", float="right", cols="1"]
 |===
 a|.Data structure
 [disc]
- * `struct ::data::rgb` `bw_out`
+ * `struct ::or::sensor::frame` `frame`
  ** `struct ::or::time::ts` `ts`
  *** `long` `sec`
  *** `long` `nsec`
@@ -76,9 +76,19 @@ a|.Data structure
 |===
 a|.Data structure
 [disc]
- * `struct ::camera::intrinsics_s` `intrinsics`
- ** `sequence< float, 5 >` `calib`
- ** `sequence< float, 5 >` `disto`
+ * `struct ::or::sensor::intrinsics` `intrinsics`
+ ** `struct ::or::sensor::calibration` `calib`
+ *** `float` `fx`
+ *** `float` `fy`
+ *** `float` `cx`
+ *** `float` `cy`
+ *** `float` `gamma`
+ ** `struct ::or::sensor::distortion` `disto`
+ *** `float` `k1`
+ *** `float` `k2`
+ *** `float` `k3`
+ *** `float` `p1`
+ *** `float` `p2`
 
 |===
 
@@ -92,13 +102,15 @@ a|.Data structure
 |===
 a|.Data structure
 [disc]
- * `struct ::camera::extrinsics_s` `extrinsics`
- ** `double` `tx`
- ** `double` `ty`
- ** `double` `tz`
- ** `double` `roll`
- ** `double` `pitch`
- ** `double` `yaw`
+ * `struct ::or::sensor::extrinsics` `extrinsics`
+ ** `struct ::or::sensor::rotation` `rot`
+ *** `float` `roll`
+ *** `float` `pitch`
+ *** `float` `yaw`
+ ** `struct ::or::sensor::translation` `trans`
+ *** `float` `tx`
+ *** `float` `ty`
+ *** `float` `tz`
 
 |===
 
@@ -113,19 +125,19 @@ a|.Data structure
 |===
 a|.Throws
 [disc]
- * `exception ::t265::e_hw`
+ * `exception ::t265::e_rs`
  ** `string<128>` `what`
 
 a|.Context
 [disc]
-  * In task `<<hw_comm>>`
+  * In task `<<main>>`
   * Updates port `<<intrinsics>>`
 |===
 
 '''
 
-[[display]]
-=== display (activity)
+[[disconnect]]
+=== disconnect (activity)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
@@ -136,8 +148,7 @@ a|.Throws
 
 a|.Context
 [disc]
-  * In task `<<bw_publish>>`
-  (frequency 29.41176470588235 _Hz_)
+  * In task `<<main>>`
 |===
 
 '''
@@ -207,11 +218,11 @@ a|.Context
 |===
 a|.Inputs
 [disc]
- * `sequence< double, 6 >` `ext_values`
+ * `sequence< float, 6 >` `ext_values`
 
 a|.Context
 [disc]
-  * In task `<<hw_comm>>`
+  * In task `<<main>>`
   * Updates port `<<extrinsics>>`
 |===
 
@@ -219,14 +230,15 @@ a|.Context
 
 == Tasks
 
-[[hw_comm]]
-=== hw_comm
+[[main]]
+=== main
 
 [role="small", width="50%", float="right", cols="1"]
 |===
 a|.Context
 [disc]
   * Free running
+* Updates port `<<frame>>`
 * Updates port `<<extrinsics>>`
 a|.Throws
 [disc]
@@ -237,20 +249,15 @@ a|.Throws
 
 '''
 
-[[bw_publish]]
-=== bw_publish
+[[publish]]
+=== publish
 
 [role="small", width="50%", float="right", cols="1"]
 |===
 a|.Context
 [disc]
-  * Frequency 29.41176470588235 _Hz_
-* Updates port `<<bw_out>>`
-a|.Throws
-[disc]
- * `exception ::t265::e_hw`
- ** `string<128>` `what`
-
+  * Frequency 1000.0 _Hz_
+* Updates port `<<frame>>`
 |===
 
 '''

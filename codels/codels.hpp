@@ -24,22 +24,20 @@
 #ifndef H_T265_CODELS
 #define H_T265_CODELS
 
+#include "act265.h"
+
 #include "t265_c_types.h"
 
-#include "fstream"
-#include "iostream"
+// #include "fstream"
+// #include "iostream"
 
 #include "librealsense2/rs.hpp"
-#include "librealsense2/rs_advanced_mode.hpp"
 
-struct t265_pipe_s {
-    bool                init = false;
-    rs2::pipeline       pipe;
-    rs2::frameset       data;
-};
+using namespace rs2;
 
-struct t265_RSdata_s {
-    rs2::frame          bw;
+struct or_camera_pipe {
+    pipeline       pipe;
+    frameset       data;
 };
 
 #endif /* H_T265_CODELS */
