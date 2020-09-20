@@ -144,7 +144,7 @@ t265_connect(uint16_t id, uint16_t *cam_id, or_camera_pipe **pipe,
         try {
             // Start streaming
             pipeline_profile pipe_profile = (*pipe)->pipe.start();
-            video_stream_profile stream = pipe_profile.get_stream(RS2_STREAM_FISHEYE).as<video_stream_profile>();
+            video_stream_profile stream = pipe_profile.get_stream(RS2_STREAM_FISHEYE, id).as<video_stream_profile>();
             intrinsics_rs2 = stream.get_intrinsics();
         } catch (rs2::error& e) {
             t265_e_rs_detail d;
