@@ -30,6 +30,8 @@
 #include <err.h>
 #include <cmath>
 
+#include <iostream>
+#include <sys/time.h>
 /* --- Task main -------------------------------------------------------- */
 
 
@@ -112,7 +114,7 @@ t265_main_pub(const or_camera_pipe *pipe, uint16_t cam_id,
 
     double ms = rsframe.get_timestamp();
     fdata->ts.sec = floor(ms/1000);
-    fdata->ts.nsec = (ms - fdata->ts.sec*1000) * 1e6;
+    fdata->ts.nsec = (ms - (double)fdata->ts.sec*1000) * 1e6;
 
     frame->write(self);
 
