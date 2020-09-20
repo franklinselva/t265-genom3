@@ -30,8 +30,6 @@
 #include <err.h>
 #include <cmath>
 
-#include <iostream>
-#include <sys/time.h>
 /* --- Task main -------------------------------------------------------- */
 
 
@@ -138,7 +136,7 @@ t265_connect(uint16_t id, uint16_t *cam_id, or_camera_pipe **pipe,
     if (*started)
     {
         t265_e_io_detail d;
-        snprintf(d.what, sizeof(d.what), "already connected to gazebo, disconnect() first");
+        snprintf(d.what, sizeof(d.what), "already connected to device, disconnect() first");
         warnx("%s", d.what);
         return t265_e_io(&d,self);
     }
@@ -194,6 +192,9 @@ t265_connect(uint16_t id, uint16_t *cam_id, or_camera_pipe **pipe,
         // Init boolean
         *started = true;
     }
+
+    warnx("connected to T265 device (fisheye camera %i)", id);
+
     return t265_ether;
 }
 
@@ -219,6 +220,8 @@ t265_disconnect(or_camera_pipe **pipe, bool *started,
         return t265_e_rs(&d,self);
     }
     *started = false;
+
+    warnx("disconnected from device");
 
     return t265_ether;
 }
