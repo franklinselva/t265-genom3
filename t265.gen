@@ -34,7 +34,7 @@ component t265 {
     email		"martin.jacquet@laas.fr";
     lang		"c";
     require	    "genom3 >= 2.99.26";
-    codels-require	"realsense2";
+    codels-require	"realsense2", "opencv";
 
     /* ---- Interfaces ---------------------------------------------------- */
     provides or_camera;
@@ -51,12 +51,15 @@ component t265 {
      *  port out  or::sensor::extrinsics    extrinsics;
      */
 
+    /* ---- Types --------------------------------------------------------- */
+    native calib_s;
     /* ---- IDS ----------------------------------------------------------- */
     ids {
         or_camera::info info;
         or_camera::pipe pipe;
 
         unsigned short cam_id;
+        calib_s calib;
     };
 
     /* ---- Tasks --------------------------------------------------------- */
@@ -67,7 +70,7 @@ component t265 {
         async codel<poll> t265_main_poll(in info.started, inout pipe)
             yield pause::poll, pub;
 
-        codel<pub> t265_main_pub(in pipe, in cam_id, out frame)
+        codel<pub> t265_main_pub(in pipe, in cam_id, in calib, out frame)
             yield poll;
     };
 
@@ -76,7 +79,7 @@ component t265 {
         task main;
         throw e_rs, e_io;
 
-        codel<start> t265_connect(in id, out cam_id, out pipe, out info.started, out intrinsics)
+        codel<start> t265_connect(in id, out cam_id, out pipe, out info.started, out intrinsics, out calib)
             yield ether;
     };
 

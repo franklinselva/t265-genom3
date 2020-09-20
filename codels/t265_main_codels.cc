@@ -44,6 +44,7 @@ t265_main_start(t265_ids *ids, const t265_extrinsics *extrinsics,
 {
     extrinsics->write(self);
     ids->pipe = new or_camera_pipe();
+    ids->calib = new t265_calib_s();
     ids->info.started = false;
 
     return t265_poll;
@@ -75,13 +76,23 @@ t265_main_poll(bool started, or_camera_pipe **pipe,
  */
 genom_event
 t265_main_pub(const or_camera_pipe *pipe, uint16_t cam_id,
-              const t265_frame *frame, const genom_context self)
+              const t265_calib_s *calib, const t265_frame *frame,
+              const genom_context self)
 {
     or_sensor_frame* fdata = frame->data(self);
 
     video_frame rsframe = pipe->data.get_fisheye_frame(cam_id);
     const uint16_t w = rsframe.get_width();
     const uint16_t h = rsframe.get_height();
+
+    Mat cvframe = Mat(
+        Size(w, h),
+        CV_8UC1,
+        (void*) rsframe.get_data(),
+        Mat::AUTO_STEP
+    );
+
+    fisheye::undistortImage(cvframe, cvframe, calib->K, calib->D, calib->K, cvframe.size());
 
     if (h*w > fdata->pixels._length)
     {
@@ -97,7 +108,7 @@ t265_main_pub(const or_camera_pipe *pipe, uint16_t cam_id,
         fdata->bpp = 1;
     }
 
-    fdata->pixels._buffer = (uint8_t*) rsframe.get_data();
+    fdata->pixels._buffer = (uint8_t*) cvframe.data;
 
     double ms = rsframe.get_timestamp();
     fdata->ts.sec = floor(ms/1000);
@@ -120,7 +131,7 @@ t265_main_pub(const or_camera_pipe *pipe, uint16_t cam_id,
 genom_event
 t265_connect(uint16_t id, uint16_t *cam_id, or_camera_pipe **pipe,
              bool *started, const t265_intrinsics *intrinsics,
-             const genom_context self)
+             t265_calib_s **calib, const genom_context self)
 {
     if (*started)
     {
@@ -153,6 +164,7 @@ t265_connect(uint16_t id, uint16_t *cam_id, or_camera_pipe **pipe,
             return t265_e_rs(&d,self);
         }
 
+        // Publish intrinsincs with 'fake distortion' (=0) since the image is undistorted before publishing
         or_sensor_intrinsics* intr_data = intrinsics->data(self);
         *intr_data = {
             .calib = {
@@ -161,16 +173,21 @@ t265_connect(uint16_t id, uint16_t *cam_id, or_camera_pipe **pipe,
                 intrinsics_rs2.ppx,
                 intrinsics_rs2.ppy,
                 0,
-            },
-            .disto = {
-                intrinsics_rs2.coeffs[0],
-                intrinsics_rs2.coeffs[1],
-                intrinsics_rs2.coeffs[2],
-                intrinsics_rs2.coeffs[3],
-                intrinsics_rs2.coeffs[4],
             }
         };
         intrinsics->write(self);
+
+        // Init local calib structure
+        (*calib)->K.at<float>(0,0) = intrinsics_rs2.fx;
+        (*calib)->K.at<float>(1,1) = intrinsics_rs2.fy;
+        (*calib)->K.at<float>(0,2) = intrinsics_rs2.ppx;
+        (*calib)->K.at<float>(1,2) = intrinsics_rs2.ppy;
+        (*calib)->K.at<float>(0,1) = 0;
+        (*calib)->K.at<float>(2,2) = 1;
+        (*calib)->D.at<float>(0) = intrinsics_rs2.coeffs[0];
+        (*calib)->D.at<float>(1) = intrinsics_rs2.coeffs[1];
+        (*calib)->D.at<float>(2) = intrinsics_rs2.coeffs[2];
+        (*calib)->D.at<float>(3) = intrinsics_rs2.coeffs[3];
 
         // Init boolean
         *started = true;
