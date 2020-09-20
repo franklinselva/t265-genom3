@@ -74,12 +74,12 @@ t265_main_poll(bool started, or_camera_pipe **pipe,
  * Yields to t265_poll.
  */
 genom_event
-t265_main_pub(const or_camera_pipe *pipe, const t265_frame *frame,
-              const genom_context self)
+t265_main_pub(const or_camera_pipe *pipe, uint16_t cam_id,
+              const t265_frame *frame, const genom_context self)
 {
     or_sensor_frame* fdata = frame->data(self);
 
-    video_frame rsframe = pipe->data.get_fisheye_frame();
+    video_frame rsframe = pipe->data.get_fisheye_frame(cam_id);
     const uint16_t w = rsframe.get_width();
     const uint16_t h = rsframe.get_height();
 
@@ -115,17 +115,31 @@ t265_main_pub(const or_camera_pipe *pipe, const t265_frame *frame,
  *
  * Triggered by t265_start.
  * Yields to t265_ether.
- * Throws t265_e_rs.
+ * Throws t265_e_rs, t265_e_io.
  */
 genom_event
-t265_connect(or_camera_pipe **pipe, bool *started,
-             const t265_intrinsics *intrinsics,
+t265_connect(uint16_t id, uint16_t *cam_id, or_camera_pipe **pipe,
+             bool *started, const t265_intrinsics *intrinsics,
              const genom_context self)
 {
     if (*started)
-        warnx("already connected to gazebo, disconnect() first");
+    {
+        t265_e_io_detail d;
+        snprintf(d.what, sizeof(d.what), "already connected to gazebo, disconnect() first");
+        warnx("%s", d.what);
+        return t265_e_io(&d,self);
+    }
+    else if (id != 1 && id != 2)
+    {
+        t265_e_io_detail d;
+        snprintf(d.what, sizeof(d.what), "invalid camera id: 1 for left, 2 for right");
+        warnx("%s", d.what);
+        return t265_e_io(&d,self);
+    }
     else
     {
+        *cam_id = id;
+
         // Start streaming
         pipeline_profile pipe_profile = (*pipe)->pipe.start();
 

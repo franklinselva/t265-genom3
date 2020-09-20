@@ -41,6 +41,7 @@ component t265 {
 
     /* ---- Exceptions ---------------------------------------------------- */
     exception e_rs { string<128> what; };
+    exception e_io { string<128> what; };
     exception e_mem { string<128> what; };
 
     /* ---- Ports --------------------------------------------------------- */
@@ -54,6 +55,8 @@ component t265 {
     ids {
         or_camera::info info;
         or_camera::pipe pipe;
+
+        unsigned short cam_id;
     };
 
     /* ---- Tasks --------------------------------------------------------- */
@@ -64,16 +67,16 @@ component t265 {
         async codel<poll> t265_main_poll(in info.started, inout pipe)
             yield pause::poll, pub;
 
-        codel<pub> t265_main_pub(in pipe, out frame)
+        codel<pub> t265_main_pub(in pipe, in cam_id, out frame)
             yield poll;
     };
 
     /* ---- Hardware connection ------------------------------------------- */
-    activity connect() {
+    activity connect(in unsigned short id = 1 : "id of desired camera (1: left, 2: right)") {
         task main;
-        throw e_rs;
+        throw e_rs, e_io;
 
-        codel<start> t265_connect(out pipe, out info.started, out intrinsics)
+        codel<start> t265_connect(in id, out cam_id, out pipe, out info.started, out intrinsics)
             yield ether;
     };
 

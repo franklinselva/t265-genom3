@@ -123,9 +123,16 @@ a|.Data structure
 
 [role="small", width="50%", float="right", cols="1"]
 |===
+a|.Inputs
+[disc]
+ * `unsigned short` `id` (default `"1"`) id of desired camera (1: left, 2: right)
+
 a|.Throws
 [disc]
  * `exception ::t265::e_rs`
+ ** `string<128>` `what`
+
+ * `exception ::t265::e_io`
  ** `string<128>` `what`
 
 a|.Context
