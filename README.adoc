@@ -150,7 +150,7 @@ a|.Context
 |===
 a|.Throws
 [disc]
- * `exception ::t265::e_hw`
+ * `exception ::t265::e_rs`
  ** `string<128>` `what`
 
 a|.Context

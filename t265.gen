@@ -82,6 +82,7 @@ component t265 {
 
     activity disconnect() {
         task main;
+        throw e_rs;
 
         codel<start> t265_disconnect(out pipe, out info.started)
             yield ether;

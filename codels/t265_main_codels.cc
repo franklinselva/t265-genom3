@@ -139,12 +139,19 @@ t265_connect(uint16_t id, uint16_t *cam_id, or_camera_pipe **pipe,
     else
     {
         *cam_id = id;
+        rs2_intrinsics intrinsics_rs2;
 
-        // Start streaming
-        pipeline_profile pipe_profile = (*pipe)->pipe.start();
-
-        video_stream_profile stream = pipe_profile.get_stream(RS2_STREAM_FISHEYE).as<video_stream_profile>();
-        rs2_intrinsics intrinsics_rs2 = stream.get_intrinsics();
+        try {
+            // Start streaming
+            pipeline_profile pipe_profile = (*pipe)->pipe.start();
+            video_stream_profile stream = pipe_profile.get_stream(RS2_STREAM_FISHEYE).as<video_stream_profile>();
+            intrinsics_rs2 = stream.get_intrinsics();
+        } catch (rs2::error& e) {
+            t265_e_rs_detail d;
+            snprintf(d.what, sizeof(d.what), "%s", e.what());
+            warnx("rs error: %s", d.what);
+            return t265_e_rs(&d,self);
+        }
 
         or_sensor_intrinsics* intr_data = intrinsics->data(self);
         *intr_data = {
@@ -178,12 +185,20 @@ t265_connect(uint16_t id, uint16_t *cam_id, or_camera_pipe **pipe,
  *
  * Triggered by t265_start.
  * Yields to t265_ether.
+ * Throws t265_e_rs.
  */
 genom_event
 t265_disconnect(or_camera_pipe **pipe, bool *started,
                 const genom_context self)
 {
-    (*pipe) = new or_camera_pipe();
+    try {
+        (*pipe)->pipe.stop();
+    } catch (rs2::error& e) {
+        t265_e_rs_detail d;
+        snprintf(d.what, sizeof(d.what), "%s", e.what());
+        warnx("rs error: %s", d.what);
+        return t265_e_rs(&d,self);
+    }
     *started = false;
 
     return t265_ether;
