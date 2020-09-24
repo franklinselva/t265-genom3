@@ -52,14 +52,14 @@ component t265 {
      */
 
     /* ---- Types --------------------------------------------------------- */
-    native calib_s;
+    native undist_s;
     /* ---- IDS ----------------------------------------------------------- */
     ids {
         or_camera::info info;
         or_camera::pipe pipe;
 
         unsigned short cam_id;
-        calib_s calib;
+        undist_s undist;
     };
 
     /* ---- Tasks --------------------------------------------------------- */
@@ -70,16 +70,18 @@ component t265 {
         async codel<poll> t265_main_poll(in info.started, inout pipe)
             yield pause::poll, pub;
 
-        codel<pub> t265_main_pub(in pipe, in cam_id, in calib, out frame)
+        codel<pub> t265_main_pub(in pipe, in cam_id, in undist, out frame)
             yield poll;
     };
 
     /* ---- Hardware connection ------------------------------------------- */
-    activity connect(in unsigned short id = 1 : "id of desired camera (1: left, 2: right)") {
+    activity connect(in unsigned short id = 1 : "id of desired camera (1: left, 2: right)",
+                     in unsigned short size = 500 : "pixel size of the desired undistorted image",
+                     in float fov = 2 : "Field of view of the undistorted image in radian") {
         task main;
         throw e_rs, e_io;
 
-        codel<start> t265_connect(in id, out cam_id, out pipe, out info.started, out intrinsics, out calib)
+        codel<start> t265_connect(in id, in size, in fov, out cam_id, out pipe, out info.started, out intrinsics, out undist)
             yield ether;
     };
 

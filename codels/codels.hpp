@@ -39,9 +39,8 @@ struct or_camera_pipe {
     frameset       data;
 };
 
-struct t265_calib_s {
-    Mat K = Mat::zeros(Size(3,3), CV_32F);
-    Mat D = Mat::zeros(Size(1,4), CV_32F);
+struct t265_undist_s {
+    Mat m1, m2;
 };
 
 #endif /* H_T265_CODELS */

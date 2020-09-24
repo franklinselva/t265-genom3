@@ -103,6 +103,10 @@ a|.Data structure
 a|.Data structure
 [disc]
  * `struct ::or::sensor::extrinsics` `extrinsics`
+ ** `struct ::or::sensor::translation` `trans`
+ *** `float` `tx`
+ *** `float` `ty`
+ *** `float` `tz`
  ** `struct ::or::sensor::rotation` `rot`
  *** `float` `roll`
  *** `float` `pitch`
@@ -126,6 +130,10 @@ a|.Data structure
 a|.Inputs
 [disc]
  * `unsigned short` `id` (default `"1"`) id of desired camera (1: left, 2: right)
+
+ * `unsigned short` `size` (default `"500"`) pixel size of the desired undistorted image
+
+ * `float` `fov` (default `"2"`) Field of view of the undistorted image in radian
 
 a|.Throws
 [disc]
