@@ -96,12 +96,12 @@ t265_main_pub(const or_camera_pipe *pipe, uint16_t cam_id,
 
     const uint16_t s = cvframe.size().height;
 
-    if (s*s > fdata->pixels._length)
+    if (s*s > fdata->pixels._maximum)
     {
         if (genom_sequence_reserve(&(fdata->pixels), s*s)  == -1) {
             t265_e_mem_detail d;
             snprintf(d.what, sizeof(d.what), "unable to allocate frame memory");
-            printf("t265: %s\n", d.what);
+            warnx("%s", d.what);
             return t265_e_mem(&d,self);
         }
         fdata->pixels._length = s*s;
