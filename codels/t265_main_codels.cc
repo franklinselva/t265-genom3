@@ -63,7 +63,13 @@ t265_main_poll(bool started, or_camera_pipe **pipe,
     if (!started)
         return t265_pause_poll;
 
-    (*pipe)->data = (*pipe)->pipe.wait_for_frames();
+    try {
+        (*pipe)->data = (*pipe)->pipe.wait_for_frames(15000);
+    }
+    catch (error e) {
+        warnx("%s\n", e.what());
+        return t265_pause_poll;
+    }
 
     return t265_pub;
 }
@@ -96,8 +102,9 @@ t265_main_pub(const or_camera_pipe *pipe, uint16_t cam_id,
 
     const uint16_t s = cvframe.size().height;
 
-    if (s*s > fdata->pixels._maximum)
+    if (s*s != fdata->pixels._maximum)
     {
+
         if (genom_sequence_reserve(&(fdata->pixels), s*s)  == -1) {
             t265_e_mem_detail d;
             snprintf(d.what, sizeof(d.what), "unable to allocate frame memory");
@@ -212,7 +219,6 @@ t265_connect(uint16_t id, uint16_t size, float fov, uint16_t *cam_id,
     }
 
     warnx("connected to T265 device (fisheye camera %i)", id);
-
     return t265_ether;
 }
 
@@ -240,7 +246,6 @@ t265_disconnect(or_camera_pipe **pipe, bool *started,
     *started = false;
 
     warnx("disconnected from device");
-
     return t265_ether;
 }
 
@@ -265,10 +270,8 @@ t265_set_extrinsics(const sequence6_float *ext_values,
         ext_values->_buffer[4],
         ext_values->_buffer[5],
     };
-
     extrinsics->write(self);
 
     warnx("new extrinsic calibration");
-
     return t265_ether;
 }
