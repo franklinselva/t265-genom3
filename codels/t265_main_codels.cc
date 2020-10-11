@@ -29,6 +29,7 @@
 
 #include <err.h>
 #include <cmath>
+#include <iostream>
 
 /* --- Task main -------------------------------------------------------- */
 
@@ -162,9 +163,14 @@ t265_connect(uint16_t id, uint16_t size, float fov, uint16_t *cam_id,
         *cam_id = id;
         rs2_intrinsics intrinsics_rs2;
 
+        config cfg;
+        cfg.enable_device("943222111046");
+        cfg.enable_stream(RS2_STREAM_FISHEYE, 1, 848, 800, RS2_FORMAT_Y8, 30);
+        cfg.enable_stream(RS2_STREAM_FISHEYE, 2, 848, 800, RS2_FORMAT_Y8, 30);
+
         try {
             // Start streaming
-            pipeline_profile pipe_profile = (*pipe)->pipe.start();
+            pipeline_profile pipe_profile = (*pipe)->pipe.start(cfg);
             video_stream_profile stream = pipe_profile.get_stream(RS2_STREAM_FISHEYE, id).as<video_stream_profile>();
             intrinsics_rs2 = stream.get_intrinsics();
         } catch (rs2::error& e) {
