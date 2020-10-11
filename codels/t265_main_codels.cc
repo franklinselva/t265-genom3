@@ -139,10 +139,10 @@ t265_main_pub(const or_camera_pipe *pipe, uint16_t cam_id,
  * Throws t265_e_rs, t265_e_io.
  */
 genom_event
-t265_connect(uint16_t id, uint16_t size, float fov, uint16_t *cam_id,
-             or_camera_pipe **pipe, bool *started,
-             const t265_intrinsics *intrinsics, t265_undist_s **undist,
-             const genom_context self)
+t265_connect(const char serial[12], uint16_t id, uint16_t size,
+             float fov, uint16_t *cam_id, or_camera_pipe **pipe,
+             bool *started, const t265_intrinsics *intrinsics,
+             t265_undist_s **undist, const genom_context self)
 {
     if (*started)
     {
@@ -164,7 +164,7 @@ t265_connect(uint16_t id, uint16_t size, float fov, uint16_t *cam_id,
         rs2_intrinsics intrinsics_rs2;
 
         config cfg;
-        cfg.enable_device("943222111046");
+        cfg.enable_device(serial);
         cfg.enable_stream(RS2_STREAM_FISHEYE, 1, 848, 800, RS2_FORMAT_Y8, 30);
         cfg.enable_stream(RS2_STREAM_FISHEYE, 2, 848, 800, RS2_FORMAT_Y8, 30);
 
