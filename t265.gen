@@ -30,7 +30,7 @@
 
 /* ---- Component declaration --------------------------------------------- */
 component t265 {
-    version	    "0.1";
+    version	    "1.0";
     email		"martin.jacquet@laas.fr";
     lang		"c";
     require	    "genom3 >= 2.99.26";
@@ -46,13 +46,14 @@ component t265 {
 
     /* ---- Ports --------------------------------------------------------- */
     /* interfaces ports:
-     *  port out  or::sensor::frame         frame;
+     *  port multiple out   or::sensor::frame    frame;
      *  port out  or::sensor::intrinsics    intrinsics;
      *  port out  or::sensor::extrinsics    extrinsics;
      */
 
     /* ---- Types --------------------------------------------------------- */
     native undist_s;
+
     /* ---- IDS ----------------------------------------------------------- */
     ids {
         or_camera::info info;
@@ -64,13 +65,13 @@ component t265 {
 
     /* ---- Tasks --------------------------------------------------------- */
     task main {
-        codel<start> t265_main_start(out ::ids, out extrinsics)
+        codel<start> t265_main_start(out ::ids, out extrinsics, out frame)
             yield poll;
 
         async codel<poll> t265_main_poll(in info.started, inout pipe)
             yield pause::poll, pub;
 
-        codel<pub> t265_main_pub(in pipe, in cam_id, in undist, out frame)
+        codel<pub> t265_main_pub(in info.compression_rate, in pipe, in cam_id, in undist, out frame)
             yield poll;
     };
 
@@ -92,6 +93,12 @@ component t265 {
 
         codel<start> t265_disconnect(out pipe, out info.started)
             yield ether;
+    };
+
+    /* ---- Control setters ----------------------------------------------- */
+    attribute set_compression(in info.compression_rate = -1 : "Image compression (0-100) ; -1 to disable compression.") {
+        throw e_io;
+        validate set_compression_rate(local in compression_rate);
     };
 
     /* ---- Calibration --------------------------------------------------- */

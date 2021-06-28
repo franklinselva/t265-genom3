@@ -21,7 +21,7 @@
 //
 //                                              Martin Jacquet - February 2020
 //
-//
+
 
 // This file was generated from t265.gen by the skeleton
 // template. Manual changes should be preserved, although they should
@@ -30,7 +30,7 @@
 
 = t265 component
 martin.jacquet@laas.fr
-0.1
+1.0
 :toc: left
 
 // fix default asciidoctor stylesheet issue #2407 and add hr clear rule
@@ -48,7 +48,7 @@ endif::[]
 
 
 [[frame]]
-=== frame (out)
+=== frame (multiple out)
 
 
 [role="small", width="50%", float="right", cols="1"]
@@ -59,6 +59,7 @@ a|.Data structure
  ** `struct ::or::time::ts` `ts`
  *** `long` `sec`
  *** `long` `nsec`
+ ** `boolean` `compressed`
  ** `unsigned short` `height`
  ** `unsigned short` `width`
  ** `unsigned short` `bpp`
@@ -111,10 +112,6 @@ a|.Data structure
  *** `float` `roll`
  *** `float` `pitch`
  *** `float` `yaw`
- ** `struct ::or::sensor::translation` `trans`
- *** `float` `tx`
- *** `float` `ty`
- *** `float` `tz`
 
 |===
 
@@ -170,60 +167,20 @@ a|.Context
 
 '''
 
-[[stop_display]]
-=== stop_display (activity)
-
-[role="small", width="50%", float="right", cols="1"]
-|===
-a|.Throws
-[disc]
- * `exception ::t265::e_hw`
- ** `string<128>` `what`
-
-a|.Context
-[disc]
-  * In task `<<bw_publish>>`
-  (frequency 29.41176470588235 _Hz_)
-|===
-
-'''
-
-[[record]]
-=== record (activity)
+[[set_compression]]
+=== set_compression (attribute)
 
 [role="small", width="50%", float="right", cols="1"]
 |===
 a|.Inputs
 [disc]
- * `string<64>` `path` (default `"/tmp/"`) Video files path
+ * `short` `compression_rate` (default `"-1"`) Image compression (0-100) ; -1 to disable compression.
 
 a|.Throws
 [disc]
- * `exception ::t265::e_hw`
+ * `exception ::t265::e_io`
  ** `string<128>` `what`
 
-a|.Context
-[disc]
-  * In task `<<bw_publish>>`
-  (frequency 29.41176470588235 _Hz_)
-|===
-
-'''
-
-[[stop_record]]
-=== stop_record (activity)
-
-[role="small", width="50%", float="right", cols="1"]
-|===
-a|.Throws
-[disc]
- * `exception ::t265::e_hw`
- ** `string<128>` `what`
-
-a|.Context
-[disc]
-  * In task `<<bw_publish>>`
-  (frequency 29.41176470588235 _Hz_)
 |===
 
 '''
@@ -256,26 +213,7 @@ a|.Context
 [disc]
   * Free running
 * Updates port `<<frame>>`
-* Updates port `<<intrinsics>>`
 * Updates port `<<extrinsics>>`
-a|.Throws
-[disc]
- * `exception ::t265::e_hw`
- ** `string<128>` `what`
-
-|===
-
-'''
-
-[[publish]]
-=== publish
-
-[role="small", width="50%", float="right", cols="1"]
-|===
-a|.Context
-[disc]
-  * Frequency 1000.0 _Hz_
-* Updates port `<<frame>>`
 |===
 
 '''

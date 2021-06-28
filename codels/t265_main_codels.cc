@@ -41,12 +41,20 @@
  */
 genom_event
 t265_main_start(t265_ids *ids, const t265_extrinsics *extrinsics,
-                const genom_context self)
+                const t265_frame *frame, const genom_context self)
 {
+    *extrinsics->data(self) = {0,0,0,0,0,0};
     extrinsics->write(self);
+
     ids->pipe = new or_camera_pipe();
     ids->undist = new t265_undist_s();
     ids->info.started = false;
+
+    frame->open("raw", self);
+    frame->open("compressed", self);
+
+    genom_sequence_reserve(&(frame->data("raw", self)->pixels), 0);
+    genom_sequence_reserve(&(frame->data("compressed", self)->pixels), 0);
 
     return t265_poll;
 }
@@ -82,15 +90,17 @@ t265_main_poll(bool started, or_camera_pipe **pipe,
  * Yields to t265_poll.
  */
 genom_event
-t265_main_pub(const or_camera_pipe *pipe, uint16_t cam_id,
-              const t265_undist_s *undist, const t265_frame *frame,
-              const genom_context self)
+t265_main_pub(int16_t compression_rate, const or_camera_pipe *pipe,
+              uint16_t cam_id, const t265_undist_s *undist,
+              const t265_frame *frame, const genom_context self)
 {
-    or_sensor_frame* fdata = frame->data(self);
+    or_sensor_frame* rfdata = frame->data("raw", self);
+    or_sensor_frame* cfdata = frame->data("compressed", self);
 
     video_frame rsframe = pipe->data.get_fisheye_frame(cam_id);
     const uint16_t w = rsframe.get_width();
     const uint16_t h = rsframe.get_height();
+    const double ms = rsframe.get_timestamp();
 
     Mat cvframe = Mat(
         Size(w, h),
@@ -103,28 +113,54 @@ t265_main_pub(const or_camera_pipe *pipe, uint16_t cam_id,
 
     const uint16_t s = cvframe.size().height;
 
-    if (s*s != fdata->pixels._maximum)
+    if (s*s != rfdata->pixels._maximum)
     {
 
-        if (genom_sequence_reserve(&(fdata->pixels), s*s)  == -1) {
+        if (genom_sequence_reserve(&(rfdata->pixels), s*s)  == -1) {
             t265_e_mem_detail d;
             snprintf(d.what, sizeof(d.what), "unable to allocate frame memory");
             warnx("%s", d.what);
             return t265_e_mem(&d,self);
         }
-        fdata->pixels._length = s*s;
-        fdata->height = s;
-        fdata->width = s;
-        fdata->bpp = 1;
+        rfdata->pixels._length = s*s;
+        rfdata->height = s;
+        rfdata->width = s;
+        rfdata->bpp = 1;
+        rfdata->compressed = false;
     }
 
-    fdata->pixels._buffer = (uint8_t*) cvframe.data;
+    memcpy(rfdata->pixels._buffer, cvframe.data, rfdata->pixels._length);
+    rfdata->ts.sec = floor(ms/1000);
+    rfdata->ts.nsec = (ms - (double)rfdata->ts.sec*1000) * 1e6;
 
-    double ms = rsframe.get_timestamp();
-    fdata->ts.sec = floor(ms/1000);
-    fdata->ts.nsec = (ms - (double)fdata->ts.sec*1000) * 1e6;
+    if (compression_rate != -1)
+    {
+        std::vector<int32_t> compression_params;
+        compression_params.push_back(IMWRITE_JPEG_QUALITY);
+        compression_params.push_back(compression_rate);
 
-    frame->write(self);
+        std::vector<uint8_t> buf;
+        imencode(".jpg", cvframe, buf, compression_params);
+
+        if (buf.size() > cfdata->pixels._maximum)
+            if (genom_sequence_reserve(&(cfdata->pixels), buf.size())  == -1) {
+                t265_e_mem_detail d;
+                snprintf(d.what, sizeof(d.what), "unable to allocate frame memory");
+                warnx("%s", d.what);
+                return t265_e_mem(&d,self);
+            }
+        cfdata->pixels._length = buf.size();
+        cfdata->height = rfdata->height;
+        cfdata->width = rfdata->width;
+        cfdata->bpp = 1;
+        cfdata->compressed = true;
+
+        memcpy(cfdata->pixels._buffer, buf.data(), buf.size());
+        cfdata->ts = rfdata->ts;
+    }
+
+    frame->write("raw", self);
+    frame->write("compressed", self);
 
     return t265_poll;
 }
@@ -215,8 +251,9 @@ t265_connect(const char serial[12], uint16_t id, uint16_t size,
                 f_px,
                 c,
                 c,
-                0
-            }
+                0,
+            },
+            .disto = {0, 0, 0, 0, 0},
         };
         intrinsics->write(self);
 
