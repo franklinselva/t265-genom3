@@ -53,8 +53,8 @@ t265_main_start(t265_ids *ids, const t265_extrinsics *extrinsics,
     frame->open("raw", self);
     frame->open("compressed", self);
 
-    genom_sequence_reserve(&(frame->data("raw", self)->pixels), 0);
-    genom_sequence_reserve(&(frame->data("compressed", self)->pixels), 0);
+    (void)genom_sequence_reserve(&(frame->data("raw", self)->pixels), 0);
+    (void)genom_sequence_reserve(&(frame->data("compressed", self)->pixels), 0);
 
     return t265_poll;
 }
