@@ -49,6 +49,7 @@ t265_main_start(t265_ids *ids, const t265_extrinsics *extrinsics,
     ids->pipe = new or_camera_pipe();
     ids->undist = new t265_undist_s();
     ids->info.started = false;
+    ids->info.compression_rate = -1;
 
     frame->open("raw", self);
     frame->open("compressed", self);
