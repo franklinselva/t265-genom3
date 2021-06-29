@@ -50,6 +50,7 @@ t265_main_start(t265_ids *ids, const t265_extrinsics *extrinsics,
     ids->undist = new t265_undist_s();
     ids->info.started = false;
     ids->info.compression_rate = -1;
+    ids->info.frequency = 30;
 
     frame->open("raw", self);
     frame->open("compressed", self);
