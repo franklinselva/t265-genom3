@@ -126,7 +126,7 @@ a|.Data structure
 |===
 a|.Inputs
 [disc]
- * `string<12>` `serial` serial number of the desired T265
+ * `string<32>` `serial` serial number of the desired T265
 
  * `unsigned short` `id` (default `"1"`) id of desired camera (1: left, 2: right)
 

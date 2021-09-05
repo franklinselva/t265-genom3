@@ -76,7 +76,7 @@ component t265 {
     };
 
     /* ---- Hardware connection ------------------------------------------- */
-    activity connect(in string<12> serial = : "serial number of the desired T265",
+    activity connect(in string<32> serial = : "serial number of the desired T265",
                      in unsigned short id = 1 : "id of desired camera (1: left, 2: right)",
                      in unsigned short size = 500 : "pixel size of the desired undistorted image",
                      in float fov = 2 : "Field of view of the undistorted image in radian") {
