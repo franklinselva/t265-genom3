@@ -113,7 +113,7 @@ t265_main_pub(int16_t compression_rate, const or_camera_pipe *pipe,
 
     remap(cvframe, cvframe, undist->m1, undist->m2, INTER_LINEAR);
 
-    const uint16_t s = cvframe.size().height;
+    const uint32_t s = cvframe.size().height;
 
     if (s*s != rfdata->pixels._maximum)
     {
@@ -201,17 +201,18 @@ t265_connect(const char serial[32], uint16_t id, uint16_t size,
         *cam_id = id;
         rs2_intrinsics intrinsics_rs2;
 
-        config cfg;
-        if (!strcmp(serial,"\0") || !strcmp(serial,"0"))
-            cfg.enable_device("");
-        else
-            cfg.enable_device(serial);
-
-        cfg.enable_stream(RS2_STREAM_FISHEYE, 1, 848, 800, RS2_FORMAT_Y8, 30);
-        cfg.enable_stream(RS2_STREAM_FISHEYE, 2, 848, 800, RS2_FORMAT_Y8, 30);
-
         try {
-            // Start streaming
+            config cfg;
+
+            if (!strcmp(serial,"\0") || !strcmp(serial,"0"))
+                cfg.enable_device("");
+            else
+                cfg.enable_device(serial);
+
+            cfg.enable_stream(RS2_STREAM_FISHEYE, 1, 848, 800, RS2_FORMAT_Y8, 30);
+            cfg.enable_stream(RS2_STREAM_FISHEYE, 2, 848, 800, RS2_FORMAT_Y8, 30);
+
+                    // Start streaming
             pipeline_profile pipe_profile = (*pipe)->pipe.start(cfg);
             video_stream_profile stream = pipe_profile.get_stream(RS2_STREAM_FISHEYE, id).as<video_stream_profile>();
             intrinsics_rs2 = stream.get_intrinsics();
