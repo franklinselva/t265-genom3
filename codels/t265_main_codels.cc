@@ -77,7 +77,7 @@ t265_main_poll(bool started, or_camera_pipe **pipe,
     try {
         (*pipe)->data = (*pipe)->pipe.wait_for_frames(15000);
     }
-    catch (rs2::error e) {
+    catch (rs2::error& e) {
         warnx("%s\n", e.what());
         return t265_pause_poll;
     }
